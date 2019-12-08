@@ -13,31 +13,31 @@ typedef struct _menu
     short nitems;
 
 } Menu;
-Menu* create_menu(short const nitems);
-short prompt_add_item(const Menu* menu);
-void scan_item_data(Menu* menu, short position);
-Item* add_item(Menu* menu, char name[], float price, short position);
-void display_menu_items(const Menu *menu);
+Menu* menu_create(short const nitems);
+short menu_prompt_add_item(const Menu* menu);
+void menu_scan_item_data(Menu* menu, short position);
+Item* menu_add_item(Menu* menu, char name[], float price, short position);
+void menu_display_items(const Menu *menu);
 void menu_destroy(Menu *menu);
 
 //TODO: Change all inputs to string and try convert to other types.
 MAIN_V
 {
-    Menu *menu = create_menu(12);
-    short position = prompt_add_item(menu);
-    scan_item_data(menu, position);
-    position = prompt_add_item(menu);
-    scan_item_data(menu, position);
-    position = prompt_add_item(menu);
-    scan_item_data(menu, position);
-    position = prompt_add_item(menu);
-    scan_item_data(menu, position);
-    display_menu_items(menu);
+    Menu *menu = menu_create(12);
+    short position = menu_prompt_add_item(menu);
+    menu_scan_item_data(menu, position);
+    position = menu_prompt_add_item(menu);
+    menu_scan_item_data(menu, position);
+    position = menu_prompt_add_item(menu);
+    menu_scan_item_data(menu, position);
+    position = menu_prompt_add_item(menu);
+    menu_scan_item_data(menu, position);
+    menu_display_items(menu);
     menu_destroy(menu);
     RES;
 }
 
-Menu* create_menu(short const nitems)
+Menu* menu_create(short const nitems)
 {
     Menu *menu = malloc(sizeof(Menu));
     assert(menu);
@@ -53,7 +53,7 @@ Menu* create_menu(short const nitems)
 
 }
 
-short prompt_add_item(const Menu* menu)
+short menu_prompt_add_item(const Menu* menu)
 {
     assert(menu);
     PS("The following menu position #s are available:");
@@ -82,7 +82,7 @@ short prompt_add_item(const Menu* menu)
 
 }
 
-void scan_item_data(Menu* menu, short position)
+void menu_scan_item_data(Menu* menu, short position)
 {
     assert(menu);
     assert(position > 0);
@@ -93,10 +93,10 @@ void scan_item_data(Menu* menu, short position)
     fscanf(stdin,"%s", name);
     PS("Enter price: ");
     fscanf(stdin,"%e", &price);
-    add_item(menu, name, price, position);
+    menu_add_item(menu, name, price, position);
 }
 
-Item* add_item(Menu* menu, char name[], float price, short position)
+Item* menu_add_item(Menu* menu, char name[], float price, short position)
 {
     assert(menu && name);
     if(strlen(name) > NAME_LEN)
@@ -113,7 +113,7 @@ Item* add_item(Menu* menu, char name[], float price, short position)
 
 
 
-void display_menu_items(const Menu *menu)
+void menu_display_items(const Menu *menu)
 {
     assert(menu);
     short i;
