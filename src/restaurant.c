@@ -13,11 +13,11 @@ typedef struct _menu
     short nitems;
 
 } Menu;
-Menu* create_menu(unsigned short nitems);
-short prompt_add_item(Menu* menu);
+Menu* create_menu(unsigned short const nitems);
+short prompt_add_item(const Menu* menu);
 void scan_item_data(Menu* menu, short position);
 Item* add_item(Menu* menu, char name[], float price, short position);
-void display_menu_items(Menu *menu);
+void display_menu_items(const Menu *menu);
 void menu_destroy(Menu *menu);
 
 //TODO: Change all inputs to string and try convert to other types.
@@ -37,7 +37,7 @@ MAIN_V
     RES;
 }
 
-Menu* create_menu(unsigned short nitems)
+Menu* create_menu(unsigned short const nitems)
 {
     Menu *menu = malloc(sizeof(Menu));
     assert(menu);
@@ -53,7 +53,7 @@ Menu* create_menu(unsigned short nitems)
 
 }
 
-short prompt_add_item(Menu* menu)
+short prompt_add_item(const Menu* menu)
 {
     assert(menu);
     PS("The following menu position #s are available:");
@@ -113,7 +113,7 @@ Item* add_item(Menu* menu, char name[], float price, short position)
 
 
 
-void display_menu_items(Menu *menu)
+void display_menu_items(const Menu *menu)
 {
     assert(menu);
     short i;
