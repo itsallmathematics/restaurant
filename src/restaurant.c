@@ -13,7 +13,7 @@ typedef struct _menu
     short nitems;
 
 } Menu;
-Menu* create_menu(unsigned short const nitems);
+Menu* create_menu(short const nitems);
 short prompt_add_item(const Menu* menu);
 void scan_item_data(Menu* menu, short position);
 Item* add_item(Menu* menu, char name[], float price, short position);
@@ -37,7 +37,7 @@ MAIN_V
     RES;
 }
 
-Menu* create_menu(unsigned short const nitems)
+Menu* create_menu(short const nitems)
 {
     Menu *menu = malloc(sizeof(Menu));
     assert(menu);
