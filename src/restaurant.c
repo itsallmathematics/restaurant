@@ -1,64 +1,45 @@
+#include <ctype.h>
+#include <limits.h>
+#include <math.h>
 #include "standard.h"
+#include "restaurant.h"
 
-#define NAME_LEN 25
-typedef struct _item
+void payment_handle_total(Menu *menu)
 {
-    char name[NAME_LEN];
-    float price;
-} Item;
-
-typedef struct _menu
-{
-    Item **items;
-    short nitems;
-
-} Menu;
-Menu* menu_create(short const nitems);
-short menu_prompt_add_item(const Menu* menu);
-void menu_scan_item_data(Menu* menu, short position);
-Item* menu_add_item(Menu* menu, char name[], float price, short position);
-void menu_display_items(const Menu *menu);
-void menu_destroy(Menu *menu);
-
-//TODO: Change all inputs to string and try convert to other types.
-MAIN_V
-{
-    Menu *menu = menu_create(12);
-    short position = menu_prompt_add_item(menu);
-    menu_scan_item_data(menu, position);
-    position = menu_prompt_add_item(menu);
-    menu_scan_item_data(menu, position);
-    position = menu_prompt_add_item(menu);
-    menu_scan_item_data(menu, position);
-    position = menu_prompt_add_item(menu);
-    menu_scan_item_data(menu, position);
-    menu_display_items(menu);
-    menu_destroy(menu);
-    RES;
-}
-
-Menu* menu_create(short const nitems)
-{
-    Menu *menu = malloc(sizeof(Menu));
     assert(menu);
-    menu->nitems = nitems;
-    menu->items = malloc((size_t) nitems*sizeof(Item*));
+    assert(menu->total);
 
-    size_t i;
-    for(i = 0; i < nitems; i++)
+    PS("Enter amount paid");
+
+    float paid = 0;
+
+    fscanf(stdin, "%f", &paid);
+
+    float change = paid - menu->total;
+
+    if(change > 0)
     {
-        menu->items[i] = NULL;
+        printf("Change: %f\n", change);
     }
-    return menu;
-
+    else if(!change)
+    {
+        PS("Have a nice day!");
+    }
+    else
+    {
+        printf("You owe %f\n", fabs(change));
+    }
+    return;
+    
 }
 
-short menu_prompt_add_item(const Menu* menu)
+int menu_prompt_add_item(const Menu* menu)
 {
     assert(menu);
     PS("The following menu position #s are available:");
-    short i, position, count = 0;
-    for(i = 0; i < menu->nitems; i++)
+    int i, position, count = 0;
+    char position_str[5]; // Do we need a getchar function wrapper to stop before the NULLBYTE?
+    for(i = 1; i < menu->nitems; i++)
     {
         if(!menu->items[i])
         {
@@ -72,17 +53,29 @@ short menu_prompt_add_item(const Menu* menu)
         return -1;
     }
     PS("Which position # do you want this item to be at?");
-    fscanf(stdin,"%hd", &position);
+    fscanf(stdin,"%s", position_str);
+    position_str[4] = '\0';
+    D PS(position_str);
+    if(match_lower(position_str, "exit"))
+    {
+        return -2;
+    }
+    san_get_string_int_nonneg(position_str, &position);
     if(menu->items[position])
     {
         ERR("Error: Menu position not available. Remove item there first.");
+        return -1;
+    }
+    if(position >= menu->nitems)
+    {
+        ERR("Error: invalid position specified");
         return -1;
     }
     return position;
 
 }
 
-void menu_scan_item_data(Menu* menu, short position)
+void menu_scan_item_data(Menu* menu, int position)
 {
     assert(menu);
     assert(position > 0);
@@ -92,11 +85,11 @@ void menu_scan_item_data(Menu* menu, short position)
     PS("Enter item name, no more than 25 characters long: ");
     fscanf(stdin,"%s", name);
     PS("Enter price: ");
-    fscanf(stdin,"%e", &price);
+    fscanf(stdin,"%f", &price);
     menu_add_item(menu, name, price, position);
 }
 
-Item* menu_add_item(Menu* menu, char name[], float price, short position)
+Item* menu_add_item(Menu* menu, char name[], float price, int position)
 {
     assert(menu && name);
     if(strlen(name) > NAME_LEN)
@@ -116,7 +109,7 @@ Item* menu_add_item(Menu* menu, char name[], float price, short position)
 void menu_display_items(const Menu *menu)
 {
     assert(menu);
-    short i;
+    int i;
     PS("====Menu Items====");
     for(i = 0; i < menu->nitems; i++)
     {
@@ -130,7 +123,7 @@ void menu_display_items(const Menu *menu)
 void menu_destroy(Menu *menu)
 {
     assert(menu);
-    short i;
+    int i;
     if(menu->items)
     {
         for(i = 0; i < menu->nitems; i++)
@@ -147,4 +140,83 @@ void menu_destroy(Menu *menu)
     free(menu);
     menu = NULL;
     return;
+}
+
+// return -1 = fail, 0 = success
+int san_get_string_int_nonneg(const char *input, int *output)
+{
+    assert(input && output);
+    if(!str_contains_all_digits(input)) return -1;
+
+    *output = atoi(input);
+    if(*output < 0) return -1;
+    return 0;
+}
+
+bool str_contains_all_digits(const char *str)
+{
+    assert(str);
+    size_t i = 0;
+    while(str[i] != '\0')
+    {
+        if(!(str[i] > 0x2F && str[i] < 0x3A))
+        {
+            return false;
+        }
+        i++;
+    }
+    return true;
+}
+
+bool match_lower(const char *str, const char *comp)
+{
+    assert(str);
+    size_t i = 0;
+    while(str[i++] != '\0')
+    {
+        if((char) tolower((int) str[i]) != (int) comp[i]) return false;
+    }
+    return true;
+}
+
+void menu_calculate_total(Menu *menu)
+{
+    assert(menu);
+    size_t i = 0;
+    menu->total = 0;
+    while(i < menu->nitems)
+    {
+        if(menu->items[i])
+        {
+            menu->total += menu->items[i]->price;
+        }
+        i++;
+    }
+    return;
+
+}
+
+void menu_display_total(Menu *menu)
+{
+    assert(menu);
+
+    printf("Total bill: %f\n", menu->total);
+    return;
+}
+
+Menu* menu_create(int const nitems)
+{
+    Menu *menu = malloc(sizeof(Menu));
+    assert(menu);
+    menu->nitems = nitems;
+    menu->items = malloc((size_t) nitems*sizeof(Item*));
+    menu->total = 0;
+
+    size_t i;
+    for(i = 0; i < nitems; i++)
+    {
+        menu->items[i] = NULL;
+    }
+    return menu;
+
 }
