@@ -68,7 +68,6 @@ int menu_prompt_add_item(const Menu* menu)
     }
     if(position >= menu->nitems)
     {
-        ERR("Error: invalid position specified");
         return -1;
     }
     return position;
@@ -218,5 +217,66 @@ Menu* menu_create(int const nitems)
         menu->items[i] = NULL;
     }
     return menu;
+}
 
+void get_path(const char *path)
+{
+    assert(path);
+    printf("Enter the path to the menu file: ");
+    assert(sizeof(*path) > 50);
+    fscanf(stdin, "%s", path);
+    return;
+}
+
+void ui_display_main_menu(void )
+{
+    PS("1. Open menu");
+    PS("2. New Menu");
+    PS("3. Exit");
+    return;
+}
+
+int ui_prompt_menu_choice(char *choice)
+{
+    assert(choice);
+    int output;
+    assert(sizeof(*choice) > 2);
+    PS("Enter your choice:");
+    fscanf(stdin, "%s", choice);
+    choice[2] = '\0';
+    return san_get_string_int_nonneg(choice, &output);
+}
+
+int menu_open()
+{
+    
+}
+
+void menu_pre_create()
+{
+
+}
+// First, write Menu struct, then write items into file
+int menu_save(const Menu *menu, const char *filename)
+{
+    assert(menu && menu->items && filename);
+
+    FILE *fp = fopen(filename, "wb");
+
+    fseek(fp, 0, SEEK_SET);
+    Item **items = menu->items;
+    menu->items = NULL; // We don't save the pointer addresses to the file
+    fwrite(menu, sizeof(Menu), 1, fp);
+    menu->items = items;
+
+    fseek(fp, sizeof(menu), SEEK_SET); // Move ptr to start writing items list after Menu
+
+    int i;
+
+    for(i = 0; i < menu->nitems; ++i)
+    {
+        fwrite(*menu->items[i], sizeof(Item), 1, fp);
+    }
+
+    fclose(fp);
 }

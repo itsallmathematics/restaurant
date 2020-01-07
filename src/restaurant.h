@@ -26,4 +26,7 @@
     void menu_calculate_total(Menu *menu);
     void menu_display_total(Menu *menu);
     void payment_handle_total(Menu *menu);
+    void ui_display_main_menu();
+    int ui_prompt_menu_choice(char *choice);
+    int menu_save(const Menu *menu, const char *filename);
 #endif
